@@ -59,18 +59,15 @@ network.on('map', (gameMap, id) => {
             moves.push(new Move(loc, expandMove.dir));
           }
         // Random if no offensive moves
-        } else if ((noOffensiveMoves(currentSite, moveCandidates))){
+        } else if ((noOffensiveMoves(currentSite, moveCandidates))) {
           // Logger.info('noOffensiveMoves')
-          let moveSite = gameMap.getLocation(loc, 2);
+          let dir = (Math.floor(Math.random() * 3) + 1);
+          let moveSite = gameMap.getLocation(loc, dir);
           let moveString = moveSite.x + ' ' + moveSite.y;
           if (!_.has(moveHash, moveString) && currentSite.strength > 40 ) {
             // Logger.info('noOffensiveMoves Has Not Been Here: ', expandMove)
             moveHash[moveString] = true;
-            moves.push(new Move(loc, 2));
-          } else if (currentSite.strength > 40 ) {
-            // Logger.info('noOffensiveMoves Has Not Been Here: ', expandMove)
-            moveHash[moveString] = true;
-            moves.push(new Move(loc, 1));          
+            moves.push(new Move(loc, dir));
           }
         } else {
 
