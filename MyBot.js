@@ -1,11 +1,12 @@
-const {
-  Move,
-} = require('./hlt');
+const { Move } = require('./hlt');
 const Networking = require('./networking');
-const _ = require('./lodash.js');
-// const Logger = require('./Logger.js');
+const _ = require('lodash');
+const Logger = require('./Logger.js');
 
-const network = new Networking('MyJavaScriptBot');
+// Enable Logging
+Logger.enabled = false; 
+
+const network = new Networking('MikesBot');
 
 function checkExpandMove(currentSite, moveCandidates) {
   var sortedCandidates = _.chain(moveCandidates)
@@ -13,17 +14,19 @@ function checkExpandMove(currentSite, moveCandidates) {
               .value();
 
   var weakestCandidate = _.find(sortedCandidates, (candidate) => {
-    return currentSite.strength >= candidate.strength && currentSite.owner !== candidate.owner;
+    return currentSite.strength >= candidate.strength && 
+           currentSite.owner !== candidate.owner &&
+           currentSite.strength > 0;
   })
 
-  // Logger.info('weakestCandidate: ', weakestCandidate);
-  // Logger.info('currentStrength: ', currentSite.strength);
+  Logger.debug('weakestCandidate: ', weakestCandidate);
+  Logger.debug('currentStrength: ', currentSite.strength);
 
   return weakestCandidate; 
 }
 
 function noOffensiveMoves(currentSite, moveCandidates) {
-  // Logger.info('canidates', moveCandidates);
+  Logger.debug('Canidates', moveCandidates);
 
   return _.every(moveCandidates, ['owner', currentSite.owner]);
 }
@@ -49,28 +52,28 @@ network.on('map', (gameMap, id) => {
 
         // Check if Expand
         if (expandMove){
-          // Logger.info('expandMove: ', expandMove)
+          Logger.debug('expandMove: ', expandMove)
           let moveSite = gameMap.getLocation(expandMove.loc, expandMove.dir);
           let moveString = moveSite.x + ' ' + moveSite.y;
-          // Logger.info('expandMove moveString ', !_.has(moveHash, moveString))
+          Logger.debug('expandMove moveString ', !_.has(moveHash, moveString))
           if (!_.has(moveHash, moveString)) {
-            // Logger.info('expandMove Has Not Been Here: ', expandMove)
             moveHash[moveString] = true;
+            Logger.info('Move: ', new Move(loc, expandMove.dir))
             moves.push(new Move(loc, expandMove.dir));
           }
         // Random if no offensive moves
         } else if ((noOffensiveMoves(currentSite, moveCandidates))) {
-          // Logger.info('noOffensiveMoves')
-          let dir = (Math.floor(Math.random() * 3) + 1);
+          Logger.debug('noOffensiveMoves')
+          let dir = (Math.floor(Math.random() * 2) + 2);
           let moveSite = gameMap.getLocation(loc, dir);
           let moveString = moveSite.x + ' ' + moveSite.y;
           if (!_.has(moveHash, moveString) && currentSite.strength > 40 ) {
-            // Logger.info('noOffensiveMoves Has Not Been Here: ', expandMove)
             moveHash[moveString] = true;
+            Logger.info('Move: ', new Move(loc, dir))
             moves.push(new Move(loc, dir));
           }
         } else {
-
+          Logger.info('No Move: ');
         }
 
         moveHash = {};

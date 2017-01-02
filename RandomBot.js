@@ -1,6 +1,4 @@
-const {
-  Move,
-} = require('./hlt');
+const { Move } = require('./hlt');
 const Networking = require('./networking');
 
 const network = new Networking('RandomJavaScriptBot');

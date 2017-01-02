@@ -1,5 +1,4 @@
-
-var Logger = require('winston');
+const Logger = require('winston');
 
 Logger.remove(Logger.transports.Console);
 
@@ -8,6 +7,7 @@ Logger.add(
   {
     filename: 'match.log',
     json: false,
+    level: 'debug',
   }
 );
 
@@ -22,5 +22,17 @@ process.on('uncaughtException', (err) => {
   Logger.add(Logger.transports.File, { filename: 'match.log' });
   Logger.log('error', 'Fatal uncaught exception', err);
 });
+
+Logger.debug = function(message, meta) {
+  if (Logger.enabled) {
+    Logger.log('debug', message, meta);
+  }
+}
+
+Logger.info = function(message, meta) {
+  if (Logger.enabled) {
+    Logger.log('info', message, meta);
+  }
+}
 
 module.exports = Logger; 
