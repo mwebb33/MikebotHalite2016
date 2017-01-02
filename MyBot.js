@@ -12,14 +12,9 @@ function offensiveMove(currentSite, moveCandidates) {
                           .value();
 
   var weakestCandidate = _.find(sortedCandidates, (candidate) => {
-    return currentSite.strength >= 20 && 
-           currentSite.owner !== candidate.owner &&
-           currentSite.strength > 0;
+    return currentSite.strength >= 50 && 
+           currentSite.owner !== candidate.owner;
   })
-
-  // if (!weakestCandidate) {
-  //   _.each(moveCandidates, {})
-  // }
 
   return weakestCandidate; 
 }
@@ -64,7 +59,7 @@ network.on('map', (gameMap, id) => {
             if (!moveSite.total) moveSite.total = moveSite.strength;
             if (!currentSite.total) currentSite.total = currentSite.strength;
 
-            if ((currentSite.strength > 30) && (currentSite.total + moveSite.total) <= 275) {
+            if ((currentSite.strength > 20) && (currentSite.total + moveSite.total) <= 300) {
               moveSite.total = currentSite.total + moveSite.total;
               moves.push(new Move(loc, dir));
               return false;
