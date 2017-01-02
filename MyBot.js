@@ -3,42 +3,40 @@ const Networking = require('./networking');
 const _ = require('lodash');
 const Logger = require('./Logger.js');
 
-// Enable Logging
-Logger.enabled = false; 
+const network = new Networking('MikeBot');
+var turn = 0;
 
-const network = new Networking('MikesBot');
-
-function checkExpandMove(currentSite, moveCandidates) {
+function offensiveMove(currentSite, moveCandidates) {
   var sortedCandidates = _.chain(moveCandidates)
-              .sortBy('strength')
-              .value();
+                          .sortBy('strength')
+                          .value();
 
   var weakestCandidate = _.find(sortedCandidates, (candidate) => {
-    return currentSite.strength >= candidate.strength && 
+    return currentSite.strength >= 20 && 
            currentSite.owner !== candidate.owner &&
            currentSite.strength > 0;
   })
 
-  Logger.debug('weakestCandidate: ', weakestCandidate);
-  Logger.debug('currentStrength: ', currentSite.strength);
+  // if (!weakestCandidate) {
+  //   _.each(moveCandidates, {})
+  // }
 
   return weakestCandidate; 
 }
 
-function noOffensiveMoves(currentSite, moveCandidates) {
-  Logger.debug('Canidates', moveCandidates);
-
-  return _.every(moveCandidates, ['owner', currentSite.owner]);
+function noOffensiveMoves(id, moveCandidates) {
+  return _.every(moveCandidates, ['owner', id]);
 }
 
 network.on('map', (gameMap, id) => {
   const moves = [];
-  let moveHash = {}; 
+  Logger.info('Turn: ', turn++)
 
   for (let y = 0; y < gameMap.height; y++) {
     for (let x = 0; x < gameMap.width; x++) {
       const loc = { x, y };
       const currentSite = gameMap.getSite(loc);
+
       if (currentSite.owner === id) {
         let moveCandidates = []
 
@@ -48,35 +46,35 @@ network.on('map', (gameMap, id) => {
         moveCandidates.push(_.assign(gameMap.getSite(loc, 4), {dir: 4, loc: gameMap.getLocation(loc, 4)}));
 
         // Check if move exists to expand or wait
-        let expandMove = checkExpandMove(currentSite, moveCandidates); 
+        let expandMove = offensiveMove(currentSite, moveCandidates); 
 
         // Check if Expand
-        if (expandMove){
-          Logger.debug('expandMove: ', expandMove)
-          let moveSite = gameMap.getLocation(expandMove.loc, expandMove.dir);
-          let moveString = moveSite.x + ' ' + moveSite.y;
-          Logger.debug('expandMove moveString ', !_.has(moveHash, moveString))
-          if (!_.has(moveHash, moveString)) {
-            moveHash[moveString] = true;
-            Logger.info('Move: ', new Move(loc, expandMove.dir))
-            moves.push(new Move(loc, expandMove.dir));
-          }
+        if (expandMove) {
+          let moveSite = gameMap.getSite(loc, expandMove.dir);
+          moves.push(new Move(loc, expandMove.dir));
+  
         // Random if no offensive moves
-        } else if ((noOffensiveMoves(currentSite, moveCandidates))) {
-          Logger.debug('noOffensiveMoves')
-          let dir = (Math.floor(Math.random() * 2) + 2);
-          let moveSite = gameMap.getLocation(loc, dir);
-          let moveString = moveSite.x + ' ' + moveSite.y;
-          if (!_.has(moveHash, moveString) && currentSite.strength > 40 ) {
-            moveHash[moveString] = true;
-            Logger.info('Move: ', new Move(loc, dir))
-            moves.push(new Move(loc, dir));
-          }
-        } else {
-          Logger.info('No Move: ');
-        }
+        } else if (noOffensiveMoves(id, moveCandidates)) {
+          // Try each direction
+          let randDir = (Math.floor(Math.random() * 2) + 2); 
+          var moveOrder = [randDir, randDir == 2 ? 3 : 2, 1]; 
 
-        moveHash = {};
+          _.forEach(moveOrder, (dir) => {
+            let moveSite = gameMap.getSite(loc, dir);
+            if (!moveSite.total) moveSite.total = moveSite.strength;
+            if (!currentSite.total) currentSite.total = currentSite.strength;
+
+            if ((currentSite.strength > 30) && (currentSite.total + moveSite.total) <= 275) {
+              moveSite.total = currentSite.total + moveSite.total;
+              moves.push(new Move(loc, dir));
+              return false;
+            }
+          });
+
+        // No moves
+        } else {
+
+        }
       }
     }
   }

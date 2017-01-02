@@ -1,7 +1,7 @@
 #!/bin/bash
-rm -r ./MikeBot
-mkdir MikeBot
-cp *.js MikeBot
-cp install.sh MikeBot
-cp runGame.sh MikeBot
-zip -r ./MikeBot/MikeBot.zip ./MikeBot
+rm -r ./MikeBotArchive
+mkdir MikeBotArchive
+cp *.js MikeBotArchive
+cp install.sh MikeBotArchive
+cp runGame.sh MikeBotArchive
+zip -r ./MikeBotArchive/MikeBotArchive.zip ./MikeBotArchive
