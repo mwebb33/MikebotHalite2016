@@ -71,8 +71,6 @@ network.on('map', (gameMap, id) => {
             }
           });
         // No moves
-      } else {
-
         }
       }
     }
