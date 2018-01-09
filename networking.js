@@ -31,6 +31,7 @@ class Networking extends EventEmitter {
           break;
         case 3:
           // fourth line is the initial map
+          return this.emit('init', this.deserializeMap(line), this.id);
           break;
         default:
           // everything after is map updates

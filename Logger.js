@@ -5,8 +5,7 @@ Logger.add(Logger.transports.File,
   {
     filename: 'match.log',
     json: false,
-    level: 'info',
-    silent: true
+    level: 'info'
   }
 );
 
@@ -22,4 +21,4 @@ process.on('uncaughtException', (err) => {
   Logger.log('error', 'Fatal uncaught exception', err);
 });
 
-module.exports = Logger; 
+module.exports = Logger;

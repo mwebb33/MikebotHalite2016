@@ -8,24 +8,31 @@ var turn = 0;
 
 function offensiveMove(currentSite, moveCandidates) {
   var sortedCandidates = _.chain(moveCandidates)
+                          .reject({owner: currentSite.owner})
                           .sortBy('strength')
                           .value();
 
-  var weakestCandidate = _.find(sortedCandidates, (candidate) => {
-    return currentSite.strength >= 50 && 
-           currentSite.owner !== candidate.owner;
-  })
-
-  return weakestCandidate; 
-}
+  if (sortedCandidates[0] && (currentSite.strength > (sortedCandidates[0].strength + 20))) {
+     return sortedCandidates[0];
+  }
+};
 
 function noOffensiveMoves(id, moveCandidates) {
   return _.every(moveCandidates, ['owner', id]);
+};
+
+function init(gameMap, id) {
+  this.gameMap = gameMap;
+  this.id = id;
 }
+
+network.on('init', (gameMap, id) => {
+  init(gameMap, id);
+});
 
 network.on('map', (gameMap, id) => {
   const moves = [];
-  Logger.info('Turn: ', turn++)
+  Logger.info('Turn: ', turn++);
 
   for (let y = 0; y < gameMap.height; y++) {
     for (let x = 0; x < gameMap.width; x++) {
@@ -41,33 +48,30 @@ network.on('map', (gameMap, id) => {
         moveCandidates.push(_.assign(gameMap.getSite(loc, 4), {dir: 4, loc: gameMap.getLocation(loc, 4)}));
 
         // Check if move exists to expand or wait
-        let expandMove = offensiveMove(currentSite, moveCandidates); 
-
+        let expandMove = offensiveMove(currentSite, moveCandidates);
         // Check if Expand
         if (expandMove) {
           let moveSite = gameMap.getSite(loc, expandMove.dir);
           moves.push(new Move(loc, expandMove.dir));
-  
         // Random if no offensive moves
         } else if (noOffensiveMoves(id, moveCandidates)) {
-          // Try each direction
-          let randDir = (Math.floor(Math.random() * 2) + 2); 
-          var moveOrder = [randDir, randDir == 2 ? 3 : 2, 1]; 
+          // Try try right, down
+          let randDir = (Math.floor(Math.random() * 2) + 2);
+          var moveOrder = [randDir, randDir == 2 ? 3 : 2, 1];
 
           _.forEach(moveOrder, (dir) => {
             let moveSite = gameMap.getSite(loc, dir);
             if (!moveSite.total) moveSite.total = moveSite.strength;
-            if (!currentSite.total) currentSite.total = currentSite.strength;
 
-            if ((currentSite.strength > 20) && (currentSite.total + moveSite.total) <= 300) {
-              moveSite.total = currentSite.total + moveSite.total;
+            if ((currentSite.strength > 20) &&
+                (currentSite.strength + moveSite.total) < 255) {
+              moveSite.total = currentSite.strength + moveSite.strength;
               moves.push(new Move(loc, dir));
               return false;
             }
           });
-
         // No moves
-        } else {
+      } else {
 
         }
       }
